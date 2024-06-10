@@ -15,10 +15,12 @@ import {
   FormMessage,
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
+import { createPostSchema } from "@/app/validate/createPost"
+import { createPost } from "@/app/action/post"
 
 const formSchema = z.object({
-  username: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
+  title: z.string().min(2, {
+    message: "Title must be at least 2 characters.",
   }),
   description: z.string().max(100, {
     message: "Description must be at most 100 characters.",
@@ -30,15 +32,19 @@ export default function ProfileForm() {
     const form = useForm<z.infer<typeof formSchema>>({
       resolver: zodResolver(formSchema),
       defaultValues: {
-        username: "",
+        title: "",
+        description: "",
       },
     })
    
     // 2. Define a submit handler.
-    function onSubmit(values: z.infer<typeof formSchema>) {
-      // Do something with the form values.
-      // ✅ This will be type-safe and validated.
-      console.log(values)
+    async function onSubmit(values: z.infer<typeof formSchema>) {
+      try {
+        await createPost(values)
+        form.reset()
+      } catch (error) {
+        console.error("Failed to create post:", error)
+      }
     }
 
   return (
@@ -46,12 +52,12 @@ export default function ProfileForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="username"
+          name="title"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Username</FormLabel>
+              <FormLabel>Titre</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input placeholder="titre du post..." {...field} />
               </FormControl>
               <FormDescription>
                 This is your public display name.
@@ -67,7 +73,7 @@ export default function ProfileForm() {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Input placeholder="shadcn" {...field} />
+                <Input placeholder="description du post.." {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
